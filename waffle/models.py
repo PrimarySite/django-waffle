@@ -320,7 +320,7 @@ class AbstractUserFlag(BaseFlag):
         verbose_name=_('Users'),
     )
 
-    class Meta(AbstractBaseFlag.Meta):
+    class Meta(BaseFlag.Meta):
         abstract = True
         verbose_name = _('Flag')
         verbose_name_plural = _('Flags')
