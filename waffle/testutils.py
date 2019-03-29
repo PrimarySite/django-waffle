@@ -1,56 +1,27 @@
 from __future__ import unicode_literals
 
+<<<<<<< HEAD
 import sys
 import types
 from functools import wraps
 from .utils import get_flag_model
 from .models import Switch, Sample
+=======
+from django.test.utils import TestContextDecorator
+
+from waffle import get_waffle_flag_model
+from waffle.models import Switch, Sample
+>>>>>>> upstream/master
 
 
 __all__ = ['override_flag', 'override_sample', 'override_switch']
-PY3 = sys.version_info[0] == 3
-if PY3:
-    CLASS_TYPES = (type,)
-else:
-    CLASS_TYPES = (type, types.ClassType)
 
 
-class _overrider(object):
+class _overrider(TestContextDecorator):
     def __init__(self, name, active):
+        super(_overrider, self).__init__()
         self.name = name
         self.active = active
-
-    def __call__(self, func):
-        if isinstance(func, CLASS_TYPES):
-            return self.for_class(func)
-        else:
-            return self.for_callable(func)
-
-    def for_class(self, obj):
-        """Wraps a class's test methods in the decorator"""
-        for attr in dir(obj):
-            if not attr.startswith('test_'):
-                # Ignore non-test functions
-                continue
-
-            attr_value = getattr(obj, attr)
-
-            if not callable(attr_value):
-                # Ignore non-functions
-                continue
-
-            setattr(obj, attr, self.for_callable(attr_value))
-
-        return obj
-
-    def for_callable(self, func):
-        """Wraps a method in the decorator"""
-        @wraps(func)
-        def _wrapped(*args, **kwargs):
-            with self:
-                return func(*args, **kwargs)
-
-        return _wrapped
 
     def get(self):
         self.obj, self.created = self.cls.objects.get_or_create(name=self.name)
@@ -61,15 +32,16 @@ class _overrider(object):
     def get_value(self):
         raise NotImplementedError
 
-    def __enter__(self):
+    def enable(self):
         self.get()
         self.old_value = self.get_value()
         if self.old_value != self.active:
             self.update(self.active)
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def disable(self):
         if self.created:
             self.obj.delete()
+            self.obj.flush()
         else:
             self.update(self.old_value)
 
@@ -102,18 +74,24 @@ class override_switch(_overrider):
         obj = self.cls.objects.get(pk=self.obj.pk)
         obj.active = active
         obj.save()
+        obj.flush()
 
     def get_value(self):
         return self.obj.active
 
 
 class override_flag(_overrider):
+<<<<<<< HEAD
     cls = get_flag_model()
+=======
+    cls = get_waffle_flag_model()
+>>>>>>> upstream/master
 
     def update(self, active):
         obj = self.cls.objects.get(pk=self.obj.pk)
         obj.everyone = active
         obj.save()
+        obj.flush()
 
     def get_value(self):
         return self.obj.everyone
@@ -140,6 +118,7 @@ class override_sample(_overrider):
         obj = self.cls.objects.get(pk=self.obj.pk)
         obj.percent = '{0}'.format(p)
         obj.save()
+        obj.flush()
 
     def get_value(self):
         p = self.obj.percent
