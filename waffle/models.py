@@ -1,8 +1,8 @@
 from __future__ import unicode_literals
 
+import logging
 import random
 from decimal import Decimal
-import logging
 
 from django.conf import settings
 from django.contrib.auth.models import Group
@@ -11,8 +11,8 @@ from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
-from waffle import managers, get_waffle_flag_model
-from waffle.utils import get_setting, keyfmt, get_cache
+from waffle import get_waffle_flag_model, managers
+from waffle.utils import get_cache, get_setting, keyfmt
 
 logger = logging.getLogger('waffle')
 
@@ -121,50 +121,12 @@ def set_flag(request, flag_name, active=True, session_only=False):
     request.waffles[flag_name] = [active, session_only]
 
 
-<<<<<<< HEAD
 class BaseFlag(BaseModel):
-=======
-class AbstractBaseFlag(BaseModel):
->>>>>>> upstream/master
     """A feature flag.
 
     Flags are active (or not) on a per-request basis.
 
     """
-<<<<<<< HEAD
-    name = models.CharField(max_length=100, unique=get_setting('UNIQUE_FLAG_NAME'),
-                            help_text='The human/computer readable name.')
-    everyone = models.NullBooleanField(blank=True, help_text=(
-        'Flip this flag on (Yes) or off (No) for everyone, overriding all '
-        'other settings. Leave as Unknown to use normally.'))
-    percent = models.DecimalField(max_digits=3, decimal_places=1, null=True,
-                                  blank=True, help_text=(
-        'A number between 0.0 and 99.9 to indicate a percentage of users for '
-        'whom this flag will be active.'))
-    testing = models.BooleanField(default=False, help_text=(
-        'Allow this flag to be set for a session for user testing.'))
-    superusers = models.BooleanField(default=True, help_text=(
-        'Flag always active for superusers?'))
-    staff = models.BooleanField(default=False, help_text=(
-        'Flag always active for staff?'))
-    authenticated = models.BooleanField(default=False, help_text=(
-        'Flag always active for authenticate users?'))
-    languages = models.TextField(blank=True, default='', help_text=(
-        'Activate this flag for users with one of these languages (comma '
-        'separated list)'))
-    groups = models.ManyToManyField(Group, blank=True, help_text=(
-        'Activate this flag for these user groups.'))
-    users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True,
-        help_text=('Activate this flag for these users.'))
-    rollout = models.BooleanField(default=False, help_text=(
-        'Activate roll-out mode?'))
-    note = models.TextField(blank=True, help_text=(
-        'Note where this Flag is used.'))
-    created = models.DateTimeField(default=datetime.now, db_index=True,
-        help_text=('Date when this Flag was created.'))
-    modified = models.DateTimeField(default=datetime.now, help_text=(
-        'Date when this Flag was last modified.'))
-=======
     name = models.CharField(
         max_length=100,
         unique=True,
@@ -234,7 +196,6 @@ class AbstractBaseFlag(BaseModel):
         help_text=_('Date when this Flag was last modified.'),
         verbose_name=_('Modified'),
     )
->>>>>>> upstream/master
 
     objects = managers.FlagManager()
 
@@ -243,12 +204,9 @@ class AbstractBaseFlag(BaseModel):
 
     class Meta:
         abstract = True
-<<<<<<< HEAD
 
-=======
         verbose_name = _('Flag')
         verbose_name_plural = _('Flags')
->>>>>>> upstream/master
 
     def flush(self):
         cache = get_cache()
@@ -348,7 +306,7 @@ class AbstractBaseFlag(BaseModel):
         return False
 
 
-class AbstractUserFlag(AbstractBaseFlag):
+class AbstractUserFlag(BaseFlag):
     groups = models.ManyToManyField(
         Group,
         blank=True,
