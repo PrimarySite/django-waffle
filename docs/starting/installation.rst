@@ -32,7 +32,7 @@ Settings
 ========
 
 Add ``waffle`` to the ``INSTALLED_APPS`` setting, and
-``waffle.middleware.WaffleMiddleware`` to ``MIDDLEWARE_CLASSES``, e.g.::
+``waffle.middleware.WaffleMiddleware`` to ``MIDDLEWARE``, e.g.::
 
     INSTALLED_APPS = (
         # ...
@@ -40,7 +40,7 @@ Add ``waffle`` to the ``INSTALLED_APPS`` setting, and
         # ...
     )
 
-    MIDDLEWARE_CLASSES = (
+    MIDDLEWARE = (
         # ...
         'waffle.middleware.WaffleMiddleware',
         # ...
@@ -51,6 +51,10 @@ Add ``waffle`` to the ``INSTALLED_APPS`` setting, and
 
 Jinja Templates
 ---------------
+
+.. versionchanged:: 0.19
+If you are using Jinja2 templates, the ``django-jinja`` dependency is currently
+unavailable with django 3.0 and greater; 2.x versions are compatible as well as 1.11.
 
 .. versionchanged:: 0.11
 
@@ -86,6 +90,8 @@ With jingo_, add it to the ``JINJA_CONFIG['extensions']`` list::
         # ...
     }
 
+
+.. _installation-settings-migrations:
 
 Database Schema
 ===============

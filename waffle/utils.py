@@ -1,5 +1,3 @@
-from __future__ import absolute_import, unicode_literals
-
 import hashlib
 import warnings
 
@@ -13,18 +11,9 @@ from waffle import defaults
 
 def get_setting(name):
     try:
-        waffle_settings = getattr(settings, 'WAFFLE')
-        return waffle_settings[name]
-    except (AttributeError, KeyError):
-        try:
-            setting = getattr(settings, 'WAFFLE_' + name)
-            warnings.warn(
-                'WAFFLE_[setting] is deprecated. '
-                'Use the WAFFLE dictionary instead',
-                DeprecationWarning)
-            return setting
-        except AttributeError:
-            return getattr(defaults, name)
+        return getattr(settings, 'WAFFLE_' + name)
+    except AttributeError:
+        return getattr(defaults, name, default)
 
 
 def keyfmt(k, v=None):

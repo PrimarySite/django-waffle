@@ -6,13 +6,12 @@ from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory, TestCase
 
 import waffle
-from test_app.models import Flag
-from waffle.models import Sample, Switch
-from waffle.testutils import override_flag, override_sample, override_switch
+from waffle.models import Switch, Sample
+from waffle.testutils import override_switch, override_flag, override_sample
 
 
-class OverrideSwitchTests(TestCase):
 
+class OverrideSwitchMixin:
     def test_switch_existed_and_was_active(self):
         Switch.objects.create(name='foo', active=True)
 
@@ -96,8 +95,7 @@ def req():
     return r
 
 
-class OverrideFlagTests(TestCase):
-
+class OverrideFlagTestsMixin:
     def test_flag_existed_and_was_active(self):
         Flag.objects.create(name='foo', everyone=True)
 
@@ -143,8 +141,19 @@ class OverrideFlagTests(TestCase):
         assert not Flag.objects.filter(name='foo').exists()
 
 
-class OverrideSampleTests(TestCase):
+class OverrideFlagsTestCase(OverrideFlagTestsMixin, TestCase):
+    """
+    Run tests with Django TestCase
+    """
 
+
+class OverrideFlagsTransactionTestCase(OverrideFlagTestsMixin, TransactionTestCase):
+    """
+    Run tests with Django TransactionTestCase
+    """
+
+
+class OverrideSampleTestsMixin:
     def test_sample_existed_and_was_100(self):
         Sample.objects.create(name='foo', percent='100.0')
 
@@ -193,10 +202,32 @@ class OverrideSampleTests(TestCase):
         assert not Sample.objects.filter(name='foo').exists()
 
 
-@override_switch('foo', active=False)
-class OverrideSwitchOnClassTests(TestCase):
+        with transaction.atomic():
+            with override_sample('foo', active=True):
+                assert waffle.sample_is_active('foo')
 
-    def setUp(self):
+            with override_sample('foo', active=False):
+                assert not waffle.sample_is_active('foo')
+
+        assert waffle.sample_is_active('foo')
+
+
+class OverrideSampleTestCase(OverrideSampleTestsMixin, TestCase):
+    """
+    Run tests with Django TestCase
+    """
+
+
+class OverrideSampleTransactionTestCase(OverrideSampleTestsMixin, TransactionTestCase):
+    """
+    Run tests with Django TransactionTestCase
+    """
+
+
+class OverrideSwitchOnClassTestsMixin(object):
+    @classmethod
+    def setUpClass(cls):
+        super(OverrideSwitchOnClassTestsMixin, cls).setUpClass()
         assert not Switch.objects.filter(name='foo').exists()
         Switch.objects.create(name='foo', active=True)
 
@@ -204,21 +235,53 @@ class OverrideSwitchOnClassTests(TestCase):
         self.assertFalse(waffle.switch_is_active('foo'))
 
 
-@override_flag('foo', active=False)
-class OverrideFlagOnClassTests(TestCase):
+@override_switch('foo', active=False)
+class OverrideSwitchOnClassTestCase(OverrideSwitchOnClassTestsMixin,
+                                    TestCase):
+    """
+    Run tests with Django TestCase
+    """
 
-    def setUp(self):
-        assert not Flag.objects.filter(name='foo').exists()
-        Flag.objects.create(name='foo', everyone=True)
+
+@override_switch('foo', active=False)
+class OverrideSwitchOnClassTransactionTestCase(OverrideSwitchOnClassTestsMixin,
+                                               TransactionTestCase):
+    """
+    Run tests with Django TransactionTestCase
+    """
+
+
+class OverrideFlagOnClassTestsMixin(object):
+    @classmethod
+    def setUpClass(cls):
+        super(OverrideFlagOnClassTestsMixin, cls).setUpClass()
+        assert not waffle.get_waffle_flag_model().objects.filter(name='foo').exists()
+        waffle.get_waffle_flag_model().objects.create(name='foo', everyone=True)
 
     def test_undecorated_method_is_set_properly_for_flag(self):
         self.assertFalse(waffle.flag_is_active(req(), 'foo'))
 
 
-@override_sample('foo', active=False)
-class OverrideSampleOnClassTests(TestCase):
+@override_flag('foo', active=False)
+class OverrideFlagOnClassTestCase(OverrideFlagOnClassTestsMixin,
+                                  TestCase):
+    """
+    Run tests with Django TestCase
+    """
 
-    def setUp(self):
+
+@override_flag('foo', active=False)
+class OverrideFlagOnClassTransactionTestCase(OverrideFlagOnClassTestsMixin,
+                                             TransactionTestCase):
+    """
+    Run tests with Django TransactionTestCase
+    """
+
+
+class OverrideSampleOnClassTestsMixin(object):
+    @classmethod
+    def setUpClass(cls):
+        super(OverrideSampleOnClassTestsMixin, cls).setUpClass()
         assert not Sample.objects.filter(name='foo').exists()
         Sample.objects.create(name='foo', percent='100.0')
 

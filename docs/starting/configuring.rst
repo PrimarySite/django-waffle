@@ -34,6 +34,10 @@ The settings are:
     The format for the cookies Waffle sets. Must contain ``%s``.
     Defaults to ``dwf_%s``.
 
+``WAFFLE_TEST_COOKIE``
+    The format for the cookies Waffle sets for user testing. Must contain ``%s``.
+    Defaults to ``dwft_%s``.
+
 ``WAFFLE_FLAG_DEFAULT``
     When a Flag is undefined in the database, Waffle considers it
     ``False``.  Set this to ``True`` to make Waffle consider undefined
@@ -94,7 +98,7 @@ The settings are:
 
 ``WAFFLE_CREATE_MISSING_SWITCHES``
     If Waffle encounters a reference to a switch that is not in the database, should Waffle create the sample?
-    If true new switchs are created and set to the value of ``WAFFLE_SWITCH_DEFAULT``
+    If true new switches are created and set to the value of ``WAFFLE_SWITCH_DEFAULT``
     Defaults to ``False``.
 
 ``WAFFLE_CREATE_MISSING_SAMPLES``

@@ -4,11 +4,9 @@ from django.http import HttpResponse
 from django.template import loader
 from django.views.decorators.cache import never_cache
 
-from waffle import flag_is_active, sample_is_active
+from waffle import get_waffle_flag_model
 from waffle.models import Sample, Switch
-from waffle.utils import get_cache, get_flag_model, get_setting, keyfmt
-
-cache = get_cache()
+from waffle.utils import get_setting
 
 
 @never_cache
@@ -18,7 +16,7 @@ def wafflejs(request):
 
 
 def _generate_waffle_js(request):
-    flags = get_flag_model().get_all()
+    flags = get_waffle_flag_model().get_all()
     flag_values = [(f.name, f.is_active(request)) for f in flags]
 
     switches = Switch.get_all()

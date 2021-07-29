@@ -126,3 +126,4 @@ kind of overhaul.
 .. _0.12: https://github.com/django-waffle/django-waffle/milestones/0.12
 .. _0.13: https://github.com/django-waffle/django-waffle/milestones/0.13
 .. _Gargoyle: https://github.com/disqus/gargoyle
+.. _django-jinja: https://niwinz.github.io/django-jinja/latest/

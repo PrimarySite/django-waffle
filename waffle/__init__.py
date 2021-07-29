@@ -3,15 +3,18 @@ from __future__ import unicode_literals
 from django.apps import apps as django_apps
 from django.core.exceptions import ImproperlyConfigured
 
-from waffle.utils import get_cache, get_flag_model, get_setting, keyfmt
+from waffle.utils import get_flag_model
+from waffle.utils import get_setting
+from django.apps import apps as django_apps
 
-VERSION = (0, 15, 2, 'ps')
+VERSION = (2, 2, 1)
 __version__ = '.'.join(map(str, VERSION))
 default_app_config = 'waffle.apps.WaffleConfig'
 
 
 def flag_is_active(request, flag_name):
-    flag = get_flag_model().get(flag_name)
+    Flag = get_flag_model()
+    flag = Flag.get(flag_name)
     return flag.is_active(request)
 
 

@@ -1,15 +1,13 @@
-from __future__ import unicode_literals
-
 import logging
 import random
+
 from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.db import models, router, transaction
 from django.utils import timezone
-from django.utils.encoding import python_2_unicode_compatible
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from waffle import managers
 from waffle.utils import get_cache, get_setting, keyfmt
@@ -22,8 +20,6 @@ logger = logging.getLogger('waffle')
 
 CACHE_EMPTY = '-'
 
-
-@python_2_unicode_compatible
 class BaseModel(models.Model):
     SINGLE_CACHE_KEY = ''
     ALL_CACHE_KEY = ''
@@ -125,46 +121,86 @@ def set_flag(request, flag_name, active=True, session_only=False):
     request.waffles[flag_name] = [active, session_only]
 
 
-
-class BaseFlag(BaseModel):
+class AbstractBaseFlag(BaseModel):
     """A feature flag.
 
     Flags are active (or not) on a per-request basis.
 
     """
-
-    name = models.CharField(max_length=100, unique=get_setting('UNIQUE_FLAG_NAME'),
-                            help_text='The human/computer readable name.')
-    everyone = models.NullBooleanField(blank=True, help_text=(
-        'Flip this flag on (Yes) or off (No) for everyone, overriding all '
-        'other settings. Leave as Unknown to use normally.'))
-    percent = models.DecimalField(max_digits=3, decimal_places=1, null=True,
-                                  blank=True, help_text=(
-        'A number between 0.0 and 99.9 to indicate a percentage of users for '
-        'whom this flag will be active.'))
-    testing = models.BooleanField(default=False, help_text=(
-        'Allow this flag to be set for a session for user testing.'))
-    superusers = models.BooleanField(default=True, help_text=(
-        'Flag always active for superusers?'))
-    staff = models.BooleanField(default=False, help_text=(
-        'Flag always active for staff?'))
-    authenticated = models.BooleanField(default=False, help_text=(
-        'Flag always active for authenticate users?'))
-    languages = models.TextField(blank=True, default='', help_text=(
-        'Activate this flag for users with one of these languages (comma '
-        'separated list)'))
+    name = models.CharField(
+        max_length=100,
+        unique=True,
+        help_text=_('The human/computer readable name.'),
+        verbose_name=_('Name'),
+    )
+    everyone = models.BooleanField(
+        blank=True,
+        null=True,
+        help_text=_(
+            'Flip this flag on (Yes) or off (No) for everyone, overriding all '
+            'other settings. Leave as Unknown to use normally.'),
+        verbose_name=_('Everyone'),
+    )
+    percent = models.DecimalField(
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        help_text=_('A number between 0.0 and 99.9 to indicate a percentage of '
+                    'users for whom this flag will be active.'),
+        verbose_name=_('Percent'),
+    )
+    testing = models.BooleanField(
+        default=False,
+        help_text=_('Allow this flag to be set for a session for user testing'),
+        verbose_name=_('Testing'),
+    )
+    superusers = models.BooleanField(
+        default=True,
+        help_text=_('Flag always active for superusers?'),
+        verbose_name=_('Superusers'),
+    )
+    staff = models.BooleanField(
+        default=False,
+        help_text=_('Flag always active for staff?'),
+        verbose_name=_('Staff'),
+    )
+    authenticated = models.BooleanField(
+        default=False,
+        help_text=_('Flag always active for authenticated users?'),
+        verbose_name=_('Authenticated'),
+    )
+    languages = models.TextField(
+        blank=True,
+        default='',
+        help_text=_('Activate this flag for users with one of these languages (comma-separated list)'),
+        verbose_name=_('Languages'),
+    )
     groups = models.ManyToManyField(Group, blank=True, help_text=(
         'Activate this flag for these user groups.'))
     users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True,
         help_text=('Activate this flag for these users.'))
-    rollout = models.BooleanField(default=False, help_text=(
-        'Activate roll-out mode?'))
-    note = models.TextField(blank=True, help_text=(
-        'Note where this Flag is used.'))
-    created = models.DateTimeField(default=datetime.now, db_index=True,
-        help_text=('Date when this Flag was created.'))
-    modified = models.DateTimeField(default=datetime.now, help_text=(
-        'Date when this Flag was last modified.'))
+    rollout = models.BooleanField(
+        default=False,
+        help_text=_('Activate roll-out mode?'),
+        verbose_name=_('Rollout'),
+    )
+    note = models.TextField(
+        blank=True,
+        help_text=_('Note where this Flag is used.'),
+        verbose_name=_('Note'),
+    )
+    created = models.DateTimeField(
+        default=timezone.now,
+        db_index=True,
+        help_text=_('Date when this Flag was created.'),
+        verbose_name=_('Created'),
+    )
+    modified = models.DateTimeField(
+        default=timezone.now,
+        help_text=_('Date when this Flag was last modified.'),
+        verbose_name=_('Modified'),
+    )
 
     objects = managers.FlagManager()
 
@@ -246,15 +282,18 @@ class BaseFlag(BaseModel):
 
     def is_active(self, request):
         if not self.pk:
-            if get_setting('LOG_MISSING_FLAGS'):
-                logger.log(level=get_setting('LOG_MISSING_FLAGS'), msg=("Flag %s not found", self.name))
+            log_level = get_setting('LOG_MISSING_FLAGS')
+            if log_level:
+                logger.log(log_level, 'Flag %s not found', self.name)
             if get_setting('CREATE_MISSING_FLAGS'):
-                get_waffle_flag_model().objects.get_or_create(
+                flag, _created = get_waffle_flag_model().objects.get_or_create(
                     name=self.name,
                     defaults={
                         'everyone': get_setting('FLAG_DEFAULT')
                     }
                 )
+                cache = get_cache()
+                cache.set(self._cache_key(self.name), flag)
 
             return get_setting('FLAG_DEFAULT')
 
@@ -378,9 +417,10 @@ class AbstractUserFlag(BaseFlag):
 
         if hasattr(user, 'groups'):
             group_ids = self._get_group_ids()
-            user_groups = set(user.groups.all().values_list('pk', flat=True))
-            if group_ids.intersection(user_groups):
-                return True
+            if group_ids:
+                user_groups = set(user.groups.all().values_list('pk', flat=True))
+                if group_ids.intersection(user_groups):
+                    return True
 
         return None
 
@@ -431,15 +471,18 @@ class Switch(BaseModel):
 
     def is_active(self):
         if not self.pk:
-            if get_setting('LOG_MISSING_SWITCHES'):
-                logger.log(level=get_setting('LOG_MISSING_SWITCHES'), msg=("Switch %s not found", self.name))
+            log_level = get_setting('LOG_MISSING_SWITCHES')
+            if log_level:
+                logger.log(log_level, 'Switch %s not found', self.name)
             if get_setting('CREATE_MISSING_SWITCHES'):
-                Switch.objects.get_or_create(
+                switch, _created = Switch.objects.get_or_create(
                     name=self.name,
                     defaults={
                         'active': get_setting('SWITCH_DEFAULT')
                     }
                 )
+                cache = get_cache()
+                cache.set(self._cache_key(self.name), switch)
 
             return get_setting('SWITCH_DEFAULT')
 
@@ -495,18 +538,21 @@ class Sample(BaseModel):
 
     def is_active(self):
         if not self.pk:
-            if get_setting('LOG_MISSING_SAMPLES'):
-                logger.log(level=get_setting('LOG_MISSING_SAMPLES'), msg=("Sample %s not found", self.name))
+            log_level = get_setting('LOG_MISSING_SAMPLES')
+            if log_level:
+                logger.log(log_level, 'Sample %s not found', self.name)
             if get_setting('CREATE_MISSING_SAMPLES'):
 
                 default_percent = 100 if get_setting('SAMPLE_DEFAULT') else 0
 
-                Sample.objects.get_or_create(
+                sample, _created = Sample.objects.get_or_create(
                     name=self.name,
                     defaults={
                         'percent': default_percent
                     }
                 )
+                cache = get_cache()
+                cache.set(self._cache_key(self.name), sample)
 
             return get_setting('SAMPLE_DEFAULT')
         return Decimal(str(random.uniform(0, 100))) <= self.percent

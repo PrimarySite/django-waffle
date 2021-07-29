@@ -1,9 +1,9 @@
-from __future__ import unicode_literals
-
 from django.contrib import admin
+from django.contrib.admin.models import LogEntry, CHANGE, DELETION
 from django.contrib.admin.widgets import ManyToManyRawIdWidget
+from django.contrib.contenttypes.models import ContentType
 from django.utils.html import escape
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from waffle.models import Sample, Switch
 
@@ -18,9 +18,20 @@ class BaseAdmin(admin.ModelAdmin):
         return actions
 
 
+def _add_log_entry(user, model, description, action_flag):
+    LogEntry.objects.create(
+        user=user,
+        content_type=ContentType.objects.get_for_model(type(model)),
+        object_id=model.id,
+        object_repr=model.name + " " + description,
+        action_flag=action_flag
+    )
+
+
 def enable_for_all(ma, request, qs):
     # Iterate over all objects to cause cache invalidation.
     for f in qs.all():
+        _add_log_entry(request.user, f, "on", CHANGE)
         f.everyone = True
         f.save()
 
@@ -28,6 +39,7 @@ def enable_for_all(ma, request, qs):
 def disable_for_all(ma, request, qs):
     # Iterate over all objects to cause cache invalidation.
     for f in qs.all():
+        _add_log_entry(request.user, f, "off", CHANGE)
         f.everyone = False
         f.save()
 
@@ -35,12 +47,17 @@ def disable_for_all(ma, request, qs):
 def delete_individually(ma, request, qs):
     # Iterate over all objects to cause cache invalidation.
     for f in qs.all():
+        _add_log_entry(request.user, f, "deleted", DELETION)
         f.delete()
 
 
 enable_for_all.short_description = _('Enable selected flags for everyone')
 disable_for_all.short_description = _('Disable selected flags for everyone')
 delete_individually.short_description = _('Delete selected')
+
+enable_for_all.allowed_permissions = ('change',)
+disable_for_all.allowed_permissions = ('change',)
+delete_individually.allowed_permissions = ('delete',)
 
 
 class InformativeManyToManyRawIdWidget(ManyToManyRawIdWidget):
@@ -84,18 +101,23 @@ class FlagAdmin(BaseAdmin):
 
 def enable_switches(ma, request, qs):
     for switch in qs:
+        _add_log_entry(request.user, switch, "on", CHANGE)
         switch.active = True
         switch.save()
 
 
 def disable_switches(ma, request, qs):
     for switch in qs:
+        _add_log_entry(request.user, switch, "off", CHANGE)
         switch.active = False
         switch.save()
 
 
 enable_switches.short_description = _('Enable selected switches')
 disable_switches.short_description = _('Disable selected switches')
+
+enable_switches.allowed_permissions = ('change',)
+disable_switches.allowed_permissions = ('change',)
 
 
 class SwitchAdmin(BaseAdmin):
