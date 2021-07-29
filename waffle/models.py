@@ -1,6 +1,5 @@
 import random
 from decimal import Decimal
-import logging
 
 from django.conf import settings
 from django.contrib.auth.models import Group
@@ -8,9 +7,13 @@ from django.db import models, router, transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from waffle import managers, get_waffle_flag_model
-from waffle.utils import get_setting, keyfmt, get_cache
+from waffle import managers
+from waffle.utils import get_cache, get_setting, keyfmt
 
+try:
+    from django.utils import timezone as datetime
+except ImportError:
+    from datetime import datetime
 logger = logging.getLogger('waffle')
 
 CACHE_EMPTY = '-'
@@ -92,7 +95,7 @@ class BaseModel(models.Model):
         cache.delete_many(keys)
 
     def save(self, *args, **kwargs):
-        self.modified = timezone.now()
+        self.modified = datetime.now()
         ret = super(BaseModel, self).save(*args, **kwargs)
         if hasattr(transaction, 'on_commit'):
             transaction.on_commit(self.flush)
@@ -212,6 +215,38 @@ class AbstractBaseFlag(BaseModel):
         keys = self.get_flush_keys()
         cache.delete_many(keys)
 
+    def _get_user_ids(self):
+        cache_key = keyfmt(get_setting('FLAG_USERS_CACHE_KEY'), self.name)
+        cached = cache.get(cache_key)
+        if cached == CACHE_EMPTY:
+            return set()
+        if cached:
+            return cached
+
+        user_ids = set(self.users.all().values_list('pk', flat=True))
+        if not user_ids:
+            cache.add(cache_key, CACHE_EMPTY)
+            return set()
+
+        cache.add(cache_key, user_ids)
+        return user_ids
+
+    def _get_group_ids(self):
+        cache_key = keyfmt(get_setting('FLAG_GROUPS_CACHE_KEY'), self.name)
+        cached = cache.get(cache_key)
+        if cached == CACHE_EMPTY:
+            return set()
+        if cached:
+            return cached
+
+        group_ids = set(self.groups.all().values_list('pk', flat=True))
+        if not group_ids:
+            cache.add(cache_key, CACHE_EMPTY)
+            return set()
+
+        cache.add(cache_key, group_ids)
+        return group_ids
+
     def get_flush_keys(self, flush_keys=None):
         flush_keys = flush_keys or []
         flush_keys.extend([
@@ -308,7 +343,7 @@ class AbstractBaseFlag(BaseModel):
         return False
 
 
-class AbstractUserFlag(AbstractBaseFlag):
+class AbstractUserFlag(BaseFlag):
     groups = models.ManyToManyField(
         Group,
         blank=True,
@@ -322,7 +357,7 @@ class AbstractUserFlag(AbstractBaseFlag):
         verbose_name=_('Users'),
     )
 
-    class Meta(AbstractBaseFlag.Meta):
+    class Meta(BaseFlag.Meta):
         abstract = True
         verbose_name = _('Flag')
         verbose_name_plural = _('Flags')
@@ -386,18 +421,6 @@ class AbstractUserFlag(AbstractBaseFlag):
                     return True
 
         return None
-
-
-class Flag(AbstractUserFlag):
-    """A feature flag.
-
-    Flags are active (or not) on a per-request basis.
-
-    """
-    class Meta(AbstractUserFlag.Meta):
-        swappable = 'WAFFLE_FLAG_MODEL'
-        verbose_name = _('Flag')
-        verbose_name_plural = _('Flags')
 
 
 class Switch(BaseModel):

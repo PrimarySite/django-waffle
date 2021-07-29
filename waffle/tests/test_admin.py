@@ -1,4 +1,13 @@
 from __future__ import unicode_literals
+
+from django.contrib.admin.sites import AdminSite
+from django.contrib.auth import get_user_model
+
+from test_app.models import Flag
+from waffle.admin import FlagAdmin, InformativeManyToManyRawIdWidget
+from waffle.tests.base import TestCase
+from waffle.utils import get_flag_model, get_setting
+
 try:
     import mock
 except ImportError:

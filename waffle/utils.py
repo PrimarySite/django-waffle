@@ -9,7 +9,7 @@ import waffle
 from waffle import defaults
 
 
-def get_setting(name, default=None):
+def get_setting(name):
     try:
         return getattr(settings, 'WAFFLE_' + name)
     except AttributeError:

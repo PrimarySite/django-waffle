@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+from django.apps import apps as django_apps
 from django.core.exceptions import ImproperlyConfigured
 
 from waffle.utils import get_flag_model
@@ -30,7 +31,6 @@ def sample_is_active(sample_name):
     sample = Sample.get(sample_name)
     return sample.is_active()
 
-
 def get_waffle_flag_model():
     """
     Returns the waffle Flag model that is active in this project.
@@ -39,7 +39,7 @@ def get_waffle_flag_model():
     # for everyone who upgrades.
     # At some point it would be helpful to require this to be defined explicitly,
     # but no for now, to remove pain form upgrading.
-    flag_model_name = get_setting('FLAG_MODEL', 'waffle.Flag')
+    flag_model_name = get_setting('FLAG_MODEL')
 
     try:
         return django_apps.get_model(flag_model_name)

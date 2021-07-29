@@ -97,6 +97,10 @@ v0.13
 - Fixed small documentation issues.
 - Updated `waffle_flag` management command to accept user groups.
 - Added setting `WAFFLE_READ_FROM_WRITE_DB` to read from write DB on cache miss.
+=======
+
+dev
+
 
 v0.12
 =====

@@ -1,5 +1,6 @@
 import os
 
+import django
 
 try:
     import django_jinja
@@ -108,3 +109,4 @@ WAFFLE_SAMPLE_DEFAULT = False
 WAFFLE_READ_FROM_WRITE_DB = False
 WAFFLE_OVERRIDE = False
 WAFFLE_CACHE_PREFIX = 'test:'
+
