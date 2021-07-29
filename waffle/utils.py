@@ -1,5 +1,3 @@
-from __future__ import unicode_literals, absolute_import
-
 import hashlib
 import warnings
 
@@ -11,20 +9,11 @@ import waffle
 from waffle import defaults
 
 
-def get_setting(name):
+def get_setting(name, default=None):
     try:
-        waffle_settings = getattr(settings, 'WAFFLE')
-        return waffle_settings[name]
-    except (AttributeError, KeyError):
-        try:
-            setting = getattr(settings, 'WAFFLE_' + name)
-            warnings.warn(
-                'WAFFLE_[setting] is deprecated. '
-                'Use the WAFFLE dictionary instead',
-                DeprecationWarning)
-            return setting
-        except AttributeError:
-            return getattr(defaults, name)
+        return getattr(settings, 'WAFFLE_' + name)
+    except AttributeError:
+        return getattr(defaults, name, default)
 
 
 def keyfmt(k, v=None):
@@ -33,7 +22,7 @@ def keyfmt(k, v=None):
         key = prefix + k
     else:
         key = prefix + hashlib.md5((k % v).encode('utf-8')).hexdigest()
-    return key.encode('utf-8')
+    return key
 
 
 def get_cache():
