@@ -7,26 +7,25 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 path = lambda *a: os.path.join(ROOT, *a)
 
 DEBUG = True
-TEST_RUNNER = 'django.test.runner.DiscoverRunner'
+TEST_RUNNER = "django.test.runner.DiscoverRunner"
 
 JINJA_CONFIG = {}
 
 SITE_ID = 1
 USE_I18N = False
 
-SECRET_KEY = 'foobar'
+SECRET_KEY = "foobar"
 
 DATABASES = {
-    'default': {
-        'NAME': 'test.db',
-        'ENGINE': 'django.db.backends.sqlite3',
+    "default": {
+        "NAME": "test.db",
+        "ENGINE": "django.db.backends.sqlite3",
     },
-
     # Provide a readonly DB for testing DB replication scenarios.
-    'readonly': {
-        'NAME': 'test.readonly.db',
-        'ENGINE': 'django.db.backends.sqlite3',
-    }
+    "readonly": {
+        "NAME": "test.readonly.db",
+        "ENGINE": "django.db.backends.sqlite3",
+    },
 }
 
 # if 'DATABASE_URL' in os.environ:
@@ -40,69 +39,71 @@ DATABASES = {
 #                           '-r travis.txt')
 
 INSTALLED_APPS = (
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.sites',
-    'waffle',
-    'test_app',
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.sites",
+    "django.contrib.messages",
+    "waffle",
+    "test_app",
 )
 
 MIDDLEWARE = (
-    'django.middleware.common.CommonMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'waffle.middleware.WaffleMiddleware',
+    "django.middleware.common.CommonMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "waffle.middleware.WaffleMiddleware",
 )
 
 
-ROOT_URLCONF = 'test_app.urls'
+ROOT_URLCONF = "test_app.urls"
 
 _CONTEXT_PROCESSORS = (
-    'django.contrib.auth.context_processors.auth',
-    'django.template.context_processors.request',
+    "django.contrib.auth.context_processors.auth",
+    "django.template.context_processors.request",
+    "django.contrib.messages.context_processors.messages",
 )
 
 TEMPLATES = [
     {
-        'BACKEND': 'django_jinja.backend.Jinja2',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'match_regex': r'jinja.*',
-            'match_extension': '',
-            'newstyle_gettext': True,
-            'context_processors': _CONTEXT_PROCESSORS,
-            'undefined': 'jinja2.Undefined',
-            'extensions': [
-                'jinja2.ext.i18n',
-                'jinja2.ext.autoescape',
-                'waffle.jinja.WaffleExtension',
+        "BACKEND": "django_jinja.backend.Jinja2",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "match_regex": r"jinja.*",
+            "match_extension": "",
+            "newstyle_gettext": True,
+            "context_processors": _CONTEXT_PROCESSORS,
+            "undefined": "jinja2.Undefined",
+            "extensions": [
+                "jinja2.ext.i18n",
+                "jinja2.ext.autoescape",
+                "waffle.jinja.WaffleExtension",
             ],
-        }
+        },
     },
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'debug': DEBUG,
-            'context_processors': _CONTEXT_PROCESSORS,
-        }
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "debug": DEBUG,
+            "context_processors": _CONTEXT_PROCESSORS,
+        },
     },
 ]
 
 
-
 WAFFLE = {
-    'FLAG_DEFAULT' : False,
-    'SWITCH_DEFAULT' : False,
-    'SAMPLE_DEFAULT' : False,
-    'READ_FROM_WRITE_DB' : False,
-    'OVERRIDE' : False,
-    'UNIQUE_FLAG_NAME': False,
-    'CACHE_PREFIX' : 'test:',
-    'FLAG_CLASS': 'test_app.models.Flag',
-    'FLAG_MODEL' : 'test_app.Flag',
+    "FLAG_DEFAULT": False,
+    "SWITCH_DEFAULT": False,
+    "SAMPLE_DEFAULT": False,
+    "READ_FROM_WRITE_DB": False,
+    "OVERRIDE": False,
+    "UNIQUE_FLAG_NAME": False,
+    "CACHE_PREFIX": "test:",
+    "FLAG_CLASS": "test_app.models.Flag",
+    "FLAG_MODEL": "test_app.Flag",
 }
