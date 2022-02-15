@@ -45,6 +45,7 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
+    'django.contrib.messages',
     'waffle',
     'test_app',
 )
@@ -52,6 +53,7 @@ INSTALLED_APPS = (
 MIDDLEWARE = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'waffle.middleware.WaffleMiddleware',
 )
@@ -62,6 +64,7 @@ ROOT_URLCONF = 'test_app.urls'
 _CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
     'django.template.context_processors.request',
+    'django.contrib.messages.context_processors.messages',
 )
 
 TEMPLATES = [
