@@ -133,7 +133,7 @@ class BaseFlag(BaseModel):
 
     name = models.CharField(max_length=100, unique=get_setting('UNIQUE_FLAG_NAME'),
                             help_text='The human/computer readable name.')
-    everyone = models.NullBooleanField(blank=True, help_text=(
+    everyone = models.BooleanField(null=True, blank=True, help_text=(
         'Flip this flag on (Yes) or off (No) for everyone, overriding all '
         'other settings. Leave as Unknown to use normally.'))
     percent = models.DecimalField(max_digits=3, decimal_places=1, null=True,
