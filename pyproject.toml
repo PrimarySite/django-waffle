@@ -1,0 +1,22 @@
+
+[project]
+name = "django-waffle"
+version = "1.0.1"
+readme = "README.rst"
+description = "A feature flipper for Django."
+dependencies = [
+  "Django",
+  "flake8",]
+keywords=["django-waffle"]
+requires-python = ">= 3.9"
+authors = [{name = "PrimarySite"}]
+maintainers = [{name="PrimarySite"}]
+classifiers=[
+  "Intended Audience :: Developers",
+  "Natural Language :: English",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+]
+
+[project.urls]
+Homepage="https://github.com/PrimarySite/django-waffle"
