@@ -3,7 +3,7 @@
 name = "django-waffle"
 version = "1.0.1"
 readme = "README.rst"
-license = 'BSD'
+license = {file = "LICENSE"}
 description = "A feature flipper for Django."
 dependencies = [
   "Django",
