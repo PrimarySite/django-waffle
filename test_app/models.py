@@ -6,7 +6,7 @@ from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.sites.models import Site
 from django.db import models
 from django.db.models import CASCADE
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from waffle.models import CACHE_EMPTY, AbstractUserFlag, BaseFlag
 from waffle.utils import get_cache, get_setting, keyfmt
